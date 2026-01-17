@@ -22,7 +22,6 @@ public class RegisterServlet extends HttpServlet {
             
             // New Fields requested for the latest update
             s.setStudentEmail(request.getParameter("email"));
-            s.setStudentPhone(request.getParameter("phone"));
             
             // Handle CGPA (Converting String to Double safely)
             String cgpaStr = request.getParameter("cgpa");
@@ -36,9 +35,16 @@ public class RegisterServlet extends HttpServlet {
             s.setCourseCode(request.getParameter("courseCode"));
             s.setStudentAchievements(request.getParameter("achievements"));
             
+            // Handle Profile Picture from the clickable UI
+            String pic = request.getParameter("profilePic");
+            if (pic == null || pic.isEmpty()) {
+                pic = "gambar/default.png"; // Default fallback
+            }
+            s.setProfilePic(pic);
+            
             // Initialize empty strings for fields that shouldn't be null
             s.setStudentBio(""); 
-            s.setProfilePic("");
+            s.setStudentPhone("");
 
             StudentDAO dao = new StudentDAO();
             if (dao.register(s)) {
@@ -48,7 +54,6 @@ public class RegisterServlet extends HttpServlet {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            // Redirect with error if parsing or database operation fails
             response.sendRedirect("register.jsp?error=1");
         }
     }

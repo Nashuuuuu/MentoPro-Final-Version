@@ -7,7 +7,7 @@ import java.util.*;
 
 public class StudentDAO {
 
-    // 1. Register a new student
+    // 1. Register a new student - UPDATED to include profilePic
     public boolean register(Student s) throws Exception {
         String sql = "INSERT INTO student (studentID, studentName, studentPhone, studentCGPA, studentRole, studentEmail, studentUsername, studentPassword, courseCode, studentBio, studentAchievements, profilePic) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection con = DBConn.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
@@ -20,9 +20,9 @@ public class StudentDAO {
             ps.setString(7, s.getStudentUsername());
             ps.setString(8, s.getStudentPassword());
             ps.setString(9, s.getCourseCode());
-            ps.setString(10, ""); 
+            ps.setString(10, (s.getStudentBio() != null) ? s.getStudentBio() : ""); 
             ps.setString(11, (s.getStudentAchievements() != null) ? s.getStudentAchievements() : "");
-            ps.setString(12, ""); 
+            ps.setString(12, s.getProfilePic()); // FIXED: Now correctly inserts the profile pic path
             return ps.executeUpdate() > 0;
         }
     }
@@ -163,31 +163,26 @@ public class StudentDAO {
         return list;
     }
 
-    /**
-     * FULL DELETE: Removes student and all related foreign key data.
-     */
     public boolean deleteStudent(int id) throws Exception {
         Connection con = null;
         PreparedStatement psRelated = null;
         PreparedStatement psUser = null;
         try {
             con = DBConn.getConnection();
-            con.setAutoCommit(false); // Transaction start
+            con.setAutoCommit(false); 
 
-            // First: delete child records to avoid Foreign Key violations
             String sql1 = "DELETE FROM mentorship WHERE mentorID = ? OR menteeID = ?";
             psRelated = con.prepareStatement(sql1);
             psRelated.setInt(1, id);
             psRelated.setInt(2, id);
             psRelated.executeUpdate();
 
-            // Second: delete parent record (the student)
             String sqlFinal = "DELETE FROM student WHERE studentID = ?";
             psUser = con.prepareStatement(sqlFinal);
             psUser.setInt(1, id);
             int rowsDeleted = psUser.executeUpdate();
 
-            con.commit(); // Push to DB
+            con.commit(); 
             return rowsDeleted > 0;
         } catch (Exception e) {
             if (con != null) con.rollback();
@@ -216,41 +211,32 @@ public class StudentDAO {
         return s;
     }
     
-    // Method to get a student's approved mentors
     public List<Student> getApprovedMentorsForStudent(int studentId) {
         String sql = "SELECT s.* FROM student s JOIN mentorship m ON s.studentID = m.mentorID "
                 + "WHERE m.menteeID = ? AND m.status = 'APPROVED'";
         return getStudentsByQuery(sql, studentId);
     }
 
-// Method to get a mentor's approved mentees
     public List<Student> getApprovedMenteesForMentor(int mentorId) {
         String sql = "SELECT s.* FROM student s JOIN mentorship m ON s.studentID = m.menteeID "
                 + "WHERE m.mentorID = ? AND m.status = 'APPROVED'";
         return getStudentsByQuery(sql, mentorId);
     }
-    // Helper method to run a query and return a list of Student objects
-private List<Student> getStudentsByQuery(String sql, int parameterId) {
-    List<Student> list = new ArrayList<>();
-    try (Connection conn = DBConn.getConnection(); 
-         PreparedStatement ps = conn.prepareStatement(sql)) {
-        
-        ps.setInt(1, parameterId);
-        ResultSet rs = ps.executeQuery();
-        
-        while (rs.next()) {
-            Student s = new Student();
-            s.setStudentID(rs.getInt("studentID"));
-            s.setStudentName(rs.getString("studentName"));
-            s.setStudentEmail(rs.getString("studentEmail"));
-            s.setCourseCode(rs.getString("courseCode"));
-            s.setProfilePic(rs.getString("profilePic"));
-            // Add any other setters you have in your Student model
-            list.add(s);
+
+    private List<Student> getStudentsByQuery(String sql, int parameterId) {
+        List<Student> list = new ArrayList<>();
+        try (Connection conn = DBConn.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, parameterId);
+            ResultSet rs = ps.executeQuery();
+            
+            while (rs.next()) {
+                list.add(mapStudent(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    } catch (Exception e) {
-        e.printStackTrace();
+        return list;
     }
-    return list;
-}
 }
