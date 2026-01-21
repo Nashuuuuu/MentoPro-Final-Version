@@ -26,7 +26,6 @@
             transition: background 0.6s ease;
         }
 
-        /* Dynamic theme for Mentee (Purple) and Mentor (Red) */
         body.mentee-theme {
             background: linear-gradient(135deg, #5B7FFF 0%, #7B9DFF 100%);
         }
@@ -35,7 +34,6 @@
             background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
         }
 
-        /* Animated background particles */
         .particles {
             position: fixed;
             width: 100%;
@@ -118,8 +116,7 @@
             margin-bottom: 30px;
             animation: fadeInDown 0.6s ease-out 0.3s both;
         }
-        
-        /* Avatar Selection with Animations */
+
         .avatar-selection-wrapper {
             display: flex;
             flex-direction: column;
@@ -214,7 +211,6 @@
             color: #FF6B6B;
         }
 
-        /* Role Selection with smooth transitions */
         .role-selection { 
             display: flex; 
             gap: 12px; 
@@ -288,7 +284,6 @@
             box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
         }
 
-        /* Form Input Groups with staggered animations */
         .input-group { 
             margin-bottom: 20px;
             animation: fadeInUp 0.6s ease-out both;
@@ -356,7 +351,6 @@
             box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.1);
         }
 
-        /* Register Button with gradient animation */
         .btn-register {
             width: 100%;
             padding: 16px;
@@ -605,7 +599,6 @@
             transform: translateY(-1px);
         }
 
-        /* Floating shapes */
         .shape {
             position: absolute;
             border-radius: 50%;
@@ -644,7 +637,6 @@
             }
         }
 
-        /* Responsive */
         @media (max-width: 576px) {
             .register-container {
                 padding: 35px 25px;

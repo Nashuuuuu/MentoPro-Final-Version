@@ -16,11 +16,11 @@ public class MentorshipServlet extends HttpServlet {
         String action = request.getParameter("action");
         HttpSession session = request.getSession();
         
-        // 1. Get current user info from session
+        // Get current user info from session
         Integer currentId = (Integer) session.getAttribute("studentID");
         String currentRole = (String) session.getAttribute("studentRole");
         
-        // Safety check: if session is lost, redirect to login
+        // if session is lost, redirect to login
         if (currentId == null) {
             response.sendRedirect("login.jsp?msg=session_expired");
             return;
@@ -29,7 +29,7 @@ public class MentorshipServlet extends HttpServlet {
         StudentDAO dao = new StudentDAO();
         
         try {
-            // ACTION: Request Mentorship (Applied by Mentee ONLY)
+            // Request Mentorship (Applied by Mentee ONLY)
             if ("apply".equals(action) || "request".equals(action)) {
                 // Validate that only Mentees can apply
                 if (!"Mentee".equals(currentRole)) {
@@ -75,7 +75,7 @@ public class MentorshipServlet extends HttpServlet {
                 }
             } 
             
-            // ACTION: Approve Request (Done by Mentor ONLY)
+            // Approve Request (Done by Mentor ONLY)
             else if ("approve".equals(action)) {
                 // Validate that only Mentors can approve
                 if (!"Mentor".equals(currentRole)) {
@@ -103,7 +103,7 @@ public class MentorshipServlet extends HttpServlet {
                 }
             } 
             
-            // ACTION: Reject Request (Done by Mentor ONLY)
+            // Reject Request (Done by Mentor ONLY)
             else if ("reject".equals(action)) {
                 // Validate that only Mentors can reject
                 if (!"Mentor".equals(currentRole)) {
@@ -131,16 +131,16 @@ public class MentorshipServlet extends HttpServlet {
                 }
             }
             
-            // ACTION: View My Mentors or My Mentees (Approved Connections)
+            // View Approved Connections)
             else if ("viewConnections".equals(action)) {
                 List<Student> connections;
                 
                 if ("Mentor".equals(currentRole)) {
-                    // If user is a Mentor, they see their approved Mentees
+                    
                     connections = dao.getApprovedMenteesForMentor(currentId);
                     request.setAttribute("connectionTitle", "My Mentees");
                 } else {
-                    // If user is a Mentee, they see their approved Mentors
+                    
                     connections = dao.getApprovedMentorsForStudent(currentId);
                     request.setAttribute("connectionTitle", "My Mentors");
                 }

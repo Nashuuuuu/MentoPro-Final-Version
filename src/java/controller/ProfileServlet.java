@@ -39,7 +39,7 @@ public class ProfileServlet extends HttpServlet {
                 return;
             }
 
-            // Original Update logic follows
+            // Original Update logic 
             Student s = dao.getStudentById(id);
             if (s != null) {
                 s.setStudentName(request.getParameter("name"));

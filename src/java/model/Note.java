@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 public class Note {
     private int noteID;
     private int mentorID;
-    private String mentorName; // Helper for display
+    private String mentorName;
     private String fileName;
     private String fileType;
     private byte[] fileData;

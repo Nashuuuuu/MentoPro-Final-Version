@@ -14,7 +14,7 @@
         }
 
         body {
-            /* Blended purple + red gradient background */
+          
             background: linear-gradient(135deg, #7B9DFF 0%, #9B7FFF 25%, #B87FD4 50%, #D98FA9 75%, #FF8E8E 100%);
             display: flex;
             align-items: center;
@@ -26,7 +26,7 @@
             overflow: hidden;
         }
 
-        /* Animated gradient background overlay */
+   
         body::before {
             content: '';
             position: absolute;
@@ -49,7 +49,7 @@
             50% { opacity: 0.8; }
         }
 
-        /* Floating particles */
+        
         .particles {
             position: fixed;
             width: 100%;
@@ -91,8 +91,7 @@
             min-height: 550px;
             z-index: 1;
         }
-
-        /* Logo at top */
+        
         .logo-top {
             position: absolute;
             top: 30px;
@@ -279,7 +278,7 @@
             border: 2px solid #FF6B6B;
         }
 
-        /* Toggle Container - Sliding Panel */
+
         .toggle-container {
             position: absolute;
             top: 0;
@@ -306,12 +305,11 @@
             transition: all 0.6s ease-in-out;
         }
 
-        /* Mentee theme (default - blue/purple) */
         .toggle {
             background: linear-gradient(135deg, #5B7FFF 0%, #7B9DFF 100%);
         }
 
-        /* Mentor theme (red) */
+    
         .container.active .toggle {
             background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
             transform: translateX(50%);
@@ -363,14 +361,14 @@
             margin-bottom: 20px;
         }
 
-        /* Icon styling */
+      
         .role-icon {
             font-size: 64px;
             margin-bottom: 20px;
             opacity: 0.9;
         }
 
-        /* Error message */
+   
         .error-msg {
             background: linear-gradient(135deg, #fff5f5 0%, #fee 100%);
             color: #e53e3e;
@@ -392,7 +390,6 @@
             75% { transform: translateX(10px); }
         }
 
-        /* Input icons */
         .input-group {
             position: relative;
             width: 100%;
@@ -416,7 +413,6 @@
             color: #7B9DFF;
         }
 
-        /* Register link */
         .register-link {
             margin-top: 20px;
             font-size: 13px;
@@ -431,7 +427,6 @@
             font-weight: 700;
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .container {
                 min-height: 600px;
@@ -516,7 +511,6 @@
 </head>
 <body>
 
-<!-- Animated particles -->
 <div class="particles" id="particles"></div>
 
 <div class="logo-top">
@@ -528,7 +522,7 @@
 
 <div class="container" id="container">
     
-    <!-- MENTEE LOGIN (Left Side) -->
+    <!-- MENTEE LOGIN -->
     <div class="form-container sign-in-mentee">
         <form action="LoginServlet" method="POST" onsubmit="handleSubmit(event, 'mentee')">
             <input type="hidden" name="role" value="Mentee">
@@ -568,7 +562,7 @@
         </form>
     </div>
 
-    <!-- MENTOR LOGIN (Right Side - Hidden Initially) -->
+    <!-- MENTOR LOGIN -->
     <div class="form-container sign-in-mentor">
         <form action="LoginServlet" method="POST" onsubmit="handleSubmit(event, 'mentor')">
             <input type="hidden" name="role" value="Mentor">
@@ -610,7 +604,7 @@
     <div class="toggle-container">
         <div class="toggle">
             
-            <!-- Left Panel (Visible when Mentor is active) -->
+            <!-- Left Panel -->
             <div class="toggle-panel toggle-left">
                 <i class="fa-solid fa-user-graduate role-icon"></i>
                 <h1>Hello, Mentee!</h1>
@@ -620,7 +614,7 @@
                 </button>
             </div>
 
-            <!-- Right Panel (Visible by default) -->
+            <!-- Right Panel -->
             <div class="toggle-panel toggle-right">
                 <i class="fa-solid fa-chalkboard-user role-icon"></i>
                 <h1>Hello, Mentor!</h1>
