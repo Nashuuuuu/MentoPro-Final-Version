@@ -1272,29 +1272,39 @@
         </div>
                             
     <% } else if (view.equals("notes")) { %>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-            <h2 style="font-size: 28px; font-weight: 800;">Study Resources</h2>
+        
+        <!-- Page Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; gap: 20px;">
+            <h2 style="font-size: 28px; font-weight: 800; margin: 0;">Study Resources</h2>
             <% if (isMentor) { %>
-                <button onclick="document.getElementById('uploadModal').style.display='flex'" class="btn btn-primary">
-                    <i class="fa-solid fa-plus"></i> Upload Resource
-                </button>
+            <button onclick="openUploadModal()" class="btn btn-primary" type="button" style="white-space: nowrap;">
+                <i class="fa-solid fa-plus"></i> Upload
+            </button>
             <% } %>
         </div>
-
+        
+        <!-- Notes Grid -->
         <div class="card-grid">
             <% 
                 try {
                     List<Note> notes = isMentor ? sDao.getAllMentorNotes() : sDao.getNotesForMentee(currentId);
                     if (notes == null || notes.isEmpty()) { 
             %>
+                <!-- Empty State -->
                 <div style="grid-column: 1/-1; text-align: center; padding: 60px; background: white; border-radius: 20px; border: 1px dashed #cbd5e1;">
                     <i class="fa-solid fa-folder-open" style="font-size: 40px; color: #cbd5e1; margin-bottom: 10px;"></i>
                     <p style="color: #64748b;">No resources available yet.</p>
+                    <% if (isMentor) { %>
+                    <button onclick="openUploadModal()" class="btn btn-primary" type="button" style="margin-top: 20px; white-space: nowrap;">
+                        <i class="fa-solid fa-plus"></i> Upload
+                    </button>
+                    <% } %>
                 </div>
             <% 
                     } else { 
                         for (Note n : notes) {
             %>
+                <!-- Note Card -->
                 <div class="note-card">
                     <div class="note-icon"><i class="fa-solid fa-file-pdf"></i></div>
                     <div class="note-title" title="<%= n.getFileName() %>"><%= n.getFileName() %></div>
@@ -1302,10 +1312,14 @@
                         <div><i class="fa-solid fa-user-circle"></i> <%= n.getMentorName() %></div>
                         <div><i class="fa-solid fa-calendar-day"></i> <%= n.getUploadDate() %></div>
                     </div>
-                    <div class="card-actions">
-                        <a href="NoteController?action=download&id=<%= n.getNoteID() %>" class="btn btn-download">Download</a>
+                    <div class="card-actions" style="display: flex; gap: 8px; margin-top: 15px;">
+                        <a href="NoteController?action=download&id=<%= n.getNoteID() %>" class="btn btn-download" style="flex: 1; text-align: center; text-decoration: none;">
+                            <i class="fa-solid fa-download"></i> Download
+                        </a>
                         <% if (isMentor) { %>
-                        <a href="NoteController?action=remove&id=<%= n.getNoteID() %>" class="btn btn-remove" onclick="return confirm('Delete this note?')">
+                        <a href="NoteController?action=remove&id=<%= n.getNoteID() %>" class="btn btn-remove" 
+                           onclick="return confirm('Are you sure you want to delete this resource?');"
+                           style="padding: 10px 15px; text-decoration: none;">
                             <i class="fa-solid fa-trash"></i>
                         </a>
                         <% } %>
@@ -1313,32 +1327,47 @@
                 </div>
             <%          } 
                     }
-                } catch(Exception e) { %>
-                    <div style="grid-column: 1/-1; color: red;">Error: <%= e.getMessage() %></div>
+                } catch(Exception e) { 
+                    e.printStackTrace();
+            %>
+                    <!-- Error State -->
+                    <div style="grid-column: 1/-1; padding: 20px; background: #fee2e2; border-radius: 10px; color: #991b1b; border: 1px solid #fecaca;">
+                        <i class="fa-solid fa-exclamation-triangle"></i> Error loading resources: <%= e.getMessage() %>
+                    </div>
             <%  } %>
         </div>
-
+        
+        <!-- Upload Modal (Mentor Only) -->
         <% if (isMentor) { %>
-        <div id="uploadModal" class="modal-overlay">
-            <div class="modal-card">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 25px;">
-                    <h3>Share Resources</h3>
-                    <button onclick="document.getElementById('uploadModal').style.display='none'" style="border:none; background:none; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+        <div id="uploadModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+            <div class="modal-card" style="max-width: 500px; background: white; border-radius: 16px; padding: 30px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                    <h3 style="margin: 0; font-size: 22px; font-weight: 700;">Share Resource</h3>
+                    <button onclick="closeUploadModal()" type="button" class="btn-close" style="background: none; border: none; cursor: pointer; font-size: 24px; color: #64748b; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.2s;">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
                 </div>
-                <form action="NoteController?action=upload" method="post" enctype="multipart/form-data">
-                    <div class="upload-dropzone" onclick="document.getElementById('fileInput').click()">
-                        <input type="file" name="file" id="fileInput" required style="display: none;" onchange="updateFileName(this)">
-                        <i class="fa-solid fa-cloud-arrow-up" style="font-size: 48px; color: <%= primaryColor %>;"></i>
-                        <p id="fileNameLabel">Click to browse files</p>
+                <form action="NoteController?action=upload" method="post" enctype="multipart/form-data" id="uploadForm">
+                    <div class="upload-dropzone" onclick="document.getElementById('fileInput').click();" 
+                         style="border: 2px dashed #cbd5e1; border-radius: 12px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s; background: #f8fafc;">
+                        <input type="file" name="file" id="fileInput" required="required" style="display: none;" onchange="updateFileName(this);" accept=".pdf,.doc,.docx,.ppt,.pptx">
+                        <i class="fa-solid fa-cloud-arrow-up" style="font-size: 48px; color: <%= primaryColor %>; margin-bottom: 15px; display: block;"></i>
+                        <p id="fileNameLabel" style="margin: 0; color: #64748b; font-size: 14px;">Click to browse or drag &amp; drop file here</p>
+                        <p style="margin: 8px 0 0 0; color: #94a3b8; font-size: 12px;">Supported: PDF, DOC, DOCX, PPT, PPTX (Max 10MB)</p>
                     </div>
-                    <div style="display: flex; gap: 12px; margin-top: 10px;">
-                        <button type="button" onclick="document.getElementById('uploadModal').style.display='none'" class="btn btn-outline" style="flex:1;">Cancel</button>
-                        <button type="submit" class="btn btn-primary" style="flex:2;">Upload</button>
+                    <div style="display: flex; gap: 12px; margin-top: 20px;">
+                        <button type="button" onclick="closeUploadModal()" class="btn btn-outline" style="flex: 1; padding: 12px;">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary" style="flex: 2; padding: 12px;">
+                            <i class="fa-solid fa-upload"></i> Upload Resource
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
         <% } %>
+
                         
     <% } else if (view.equals("profile")) { %>
         <h1 class="page-header">Account Settings</h1>
@@ -1514,6 +1543,185 @@ window.onload = function() {
         showNotification(decodedMsg, status || 'success');
     }
 };
+function openUploadModal() {
+        const modal = document.getElementById('uploadModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    }
+    
+    function closeUploadModal() {
+        const modal = document.getElementById('uploadModal');
+        const form = document.getElementById('uploadForm');
+        const label = document.getElementById('fileNameLabel');
+        
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        
+        if (form) {
+            form.reset();
+        }
+        
+        if (label) {
+            label.textContent = 'Click to browse or drag & drop file here';
+        }
+    }
+    
+    function updateFileName(input) {
+        const label = document.getElementById('fileNameLabel');
+        if (input.files && input.files[0] && label) {
+            const fileName = input.files[0].name;
+            const fileSize = (input.files[0].size / 1024 / 1024).toFixed(2);
+            label.innerHTML = '<i class="fa-solid fa-file-check" style="color: <%= primaryColor %>; margin-right: 8px;"></i>' + 
+                            fileName + ' <span style="color: #94a3b8;">(' + fileSize + ' MB)</span>';
+        }
+    }
+    
+    // ========================================
+    // Event Listeners
+    // ========================================
+    
+    // Close modal when clicking outside
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('uploadModal');
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeUploadModal();
+                }
+            });
+        }
+        
+        // ========================================
+        // Close Button Hover Effects
+        // ========================================
+        const closeBtn = document.querySelector('.btn-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('mouseenter', function() {
+                this.style.background = '#f1f5f9';
+                this.style.color = '#1e293b';
+            });
+            closeBtn.addEventListener('mouseleave', function() {
+                this.style.background = 'none';
+                this.style.color = '#64748b';
+            });
+        }
+        
+        // ========================================
+        // Dropzone Hover Effects
+        // ========================================
+        const dropzone = document.querySelector('.upload-dropzone');
+        if (dropzone) {
+            dropzone.addEventListener('mouseenter', function() {
+                this.style.borderColor = '<%= primaryColor %>';
+                this.style.background = '#f0f9ff';
+            });
+            dropzone.addEventListener('mouseleave', function() {
+                this.style.borderColor = '#cbd5e1';
+                this.style.background = '#f8fafc';
+            });
+        }
+    });
+</script>
+<script type="text/javascript">
+    // ========================================
+    // Modal Functions
+    // ========================================
+    
+    function openUploadModal() {
+        var modal = document.getElementById('uploadModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    }
+    
+    function closeUploadModal() {
+        var modal = document.getElementById('uploadModal');
+        var form = document.getElementById('uploadForm');
+        var label = document.getElementById('fileNameLabel');
+        
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        
+        if (form) {
+            form.reset();
+        }
+        
+        if (label) {
+            label.innerHTML = 'Click to browse or drag &amp; drop file here';
+        }
+    }
+    
+    function updateFileName(input) {
+        var label = document.getElementById('fileNameLabel');
+        if (input.files && input.files[0] && label) {
+            var fileName = input.files[0].name;
+            var fileSize = (input.files[0].size / 1024 / 1024).toFixed(2);
+            label.innerHTML = '<i class="fa-solid fa-file-check" style="color: <%= primaryColor %>; margin-right: 8px;"></i>' + 
+                            fileName + ' <span style="color: #94a3b8;">(' + fileSize + ' MB)</span>';
+        }
+    }
+    
+    // ========================================
+    // Event Listeners (Compatible with older browsers)
+    // ========================================
+    
+    // Close modal when clicking outside
+    if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', function() {
+            var modal = document.getElementById('uploadModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeUploadModal();
+                    }
+                });
+            }
+            
+            // ========================================
+            // Close Button Hover Effects
+            // ========================================
+            var closeBtn = document.querySelector('.btn-close');
+            if (closeBtn) {
+                closeBtn.addEventListener('mouseenter', function() {
+                    this.style.background = '#f1f5f9';
+                    this.style.color = '#1e293b';
+                });
+                closeBtn.addEventListener('mouseleave', function() {
+                    this.style.background = 'none';
+                    this.style.color = '#64748b';
+                });
+            }
+            
+            // ========================================
+            // Dropzone Hover Effects
+            // ========================================
+            var dropzone = document.querySelector('.upload-dropzone');
+            if (dropzone) {
+                dropzone.addEventListener('mouseenter', function() {
+                    this.style.borderColor = '<%= primaryColor %>';
+                    this.style.background = '#f0f9ff';
+                });
+                dropzone.addEventListener('mouseleave', function() {
+                    this.style.borderColor = '#cbd5e1';
+                    this.style.background = '#f8fafc';
+                });
+            }
+        });
+    } else if (document.attachEvent) {
+        // Fallback for IE8 and older
+        document.attachEvent('onreadystatechange', function() {
+            if (document.readyState === 'complete') {
+                // Event listeners setup here if needed
+            }
+        });
+    }
 </script>
 
 </body>

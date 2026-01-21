@@ -3,7 +3,7 @@ public class Student {
     private int studentID;
     private String studentName, studentPhone, studentRole, studentEmail, studentUsername, studentPassword, courseCode, studentBio, studentAchievements, profilePic;
     private double studentCGPA;
-    // Getters and Setters for all fields...
+    // Getters and Setters
     public int getStudentID() { return studentID; }
     public void setStudentID(int studentID) { this.studentID = studentID; }
     public String getStudentName() { return studentName; }

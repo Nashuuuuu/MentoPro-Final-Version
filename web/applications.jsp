@@ -1,17 +1,17 @@
 <%@ page session="true" %>
 <%@ page import="dao.MentorshipDAO, java.util.*" %>
 <%
-    // 1. Security Guard: Only Mentors can access this page
+    // Only Mentors can access this page
     String role = (String) session.getAttribute("studentRole");
     if (role == null || !role.equals("Mentor")) {
         response.sendRedirect("dashboard.jsp");
         return;
     }
 
-    // 2. Get Mentor ID from session
+    // Get Mentor ID from session
     Integer mentorId = (Integer) session.getAttribute("studentID");
     
-    // 3. Fetch pending applications
+    // Fetch pending applications
     MentorshipDAO mDao = new MentorshipDAO();
     List<Map<String, Object>> apps = new ArrayList<>();
     try {

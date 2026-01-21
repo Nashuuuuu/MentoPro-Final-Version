@@ -35,7 +35,7 @@ public class RegisterServlet extends HttpServlet {
             s.setCourseCode(request.getParameter("courseCode"));
             s.setStudentAchievements(request.getParameter("achievements"));
             
-            // Handle Profile Picture from the clickable UI
+            // Handle Profile Picture
             String pic = request.getParameter("profilePic");
             if (pic == null || pic.isEmpty()) {
                 pic = "gambar/default.png"; // Default fallback

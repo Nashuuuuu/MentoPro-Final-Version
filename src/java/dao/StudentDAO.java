@@ -6,9 +6,6 @@ import model.Note;
 import java.sql.*;
 import java.util.*;
 
-/**
- * StudentDAO handles all database operations related to the Student and Mentorship tables.
- */
 public class StudentDAO {
 
     public Student authenticate(String username, String password) throws Exception {
@@ -25,10 +22,8 @@ public class StudentDAO {
         }
         return null;
     }
-
-    /**
-     * Register a new student into the database
-     */
+    
+    // Register a new student into the database
     public boolean register(Student s) throws Exception {
         String sql = "INSERT INTO student (studentID, studentName, studentUsername, studentPassword, " +
                      "studentRole, studentEmail, studentCGPA, courseCode, studentAchievements, " +
@@ -51,15 +46,11 @@ public class StudentDAO {
         }
     }
 
-    // --- MENTORSHIP LOGIC (MENTEE PERSPECTIVE) ---
-
-    /**
-     * Get list of mentors with their specific request status for a mentee.
-     * Excludes mentors where the status is already 'APPROVED'.
-     */
+    // MENTEE PERSPECTIVE
+    //   Get list of mentors for a mentee
     public List<Map<String, Object>> getMentorsForMenteeOverview(int menteeId) throws Exception {
         List<Map<String, Object>> list = new ArrayList<>();
-        // Logic: Get all mentors and LEFT JOIN mentorship to see if this mentee has a relationship with them
+        // Check if the mentor and mentee have connection
         String sql = "SELECT s.*, m.status "
                 + "FROM student s "
                 + "LEFT JOIN mentorship m ON s.studentID = m.mentorID AND m.menteeID = ? "
@@ -73,7 +64,7 @@ public class StudentDAO {
                 while (rs.next()) {
                     Map<String, Object> map = new HashMap<>();
                     map.put("student", mapStudent(rs));
-                    map.put("requestStatus", rs.getString("status")); // NULL, PENDING, or REJECTED
+                    map.put("requestStatus", rs.getString("status"));
                     list.add(map);
                 }
             }
@@ -81,9 +72,7 @@ public class StudentDAO {
         return list;
     }
 
-    /**
-     * Get the current mentorship status between a specific mentor and mentee
-     */
+    // Get mentorship status between a mentor and mentee
     public String getRequestStatus(int mentorId, int menteeId) throws Exception {
         String sql = "SELECT status FROM mentorship WHERE mentorID = ? AND menteeID = ?";
         try (Connection con = DBConn.getConnection();
@@ -99,9 +88,7 @@ public class StudentDAO {
         return null;
     }
 
-    /**
-     * Check if any request exists regardless of status
-     */
+    // Check if any request exists regardless of status
     public boolean hasExistingRequest(int mentorId, int menteeId) throws Exception {
         return getRequestStatus(mentorId, menteeId) != null;
     }
@@ -186,9 +173,7 @@ public class StudentDAO {
         return list;
     }
 
-    /**
-     * Approve or Reject a request
-     */
+     // Approve or Reject a request
     public boolean updateRequestStatus(int mentorId, int menteeId, String status) throws Exception {
         String sql = "UPDATE mentorship SET status = ? WHERE mentorID = ? AND menteeID = ?";
         try (Connection con = DBConn.getConnection(); 
@@ -200,8 +185,7 @@ public class StudentDAO {
         }
     }
 
-    // --- PROFILE & GENERAL QUERIES ---
-
+    // PROFILE
     public Student getStudentById(int id) throws Exception {
         String sql = "SELECT * FROM student WHERE studentID = ?";
         try (Connection con = DBConn.getConnection(); 
@@ -399,10 +383,6 @@ public class StudentDAO {
         }
         return null;
     }
-    
-    
-
-    // --- HELPER METHOD ---
 
     private Student mapStudent(ResultSet rs) throws SQLException {
         Student s = new Student();

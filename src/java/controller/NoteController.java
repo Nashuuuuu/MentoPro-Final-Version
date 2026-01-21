@@ -56,7 +56,7 @@ public class NoteController extends HttpServlet {
                     String fileName = filePart.getSubmittedFileName();
                     String fileType = filePart.getContentType();
                     
-                    // Read file data into byte array using native Java logic (no external library needed)
+                    // Read file data 
                     byte[] fileData = new byte[(int) filePart.getSize()];
                     try (InputStream inputStream = filePart.getInputStream()) {
                         int bytesRead = 0;

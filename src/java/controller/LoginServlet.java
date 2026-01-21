@@ -19,7 +19,7 @@ public class LoginServlet extends HttpServlet {
             Student s = dao.authenticate(username, password);
             
             if(s != null) {
-                // ROLE VALIDATION: Check if account role matches the login panel used
+                // ROLE VALIDATION
                 if(!s.getStudentRole().equals(attemptedRole)) {
                     // Wrong role! User tried to login with wrong panel
                     String errorMsg = "This account is registered as " + s.getStudentRole() + 
@@ -29,13 +29,15 @@ public class LoginServlet extends HttpServlet {
                     return;
                 }
                 
-                // Correct role - proceed with login
+                // Proceed with login
                 HttpSession session = request.getSession();
                 session.setAttribute("studentID", s.getStudentID());
                 session.setAttribute("studentName", s.getStudentName());
                 session.setAttribute("studentRole", s.getStudentRole());
                 response.sendRedirect("dashboard.jsp");
             } else {
+                
+                
                 // Invalid credentials
                 response.sendRedirect("login.jsp?error=" + URLEncoder.encode("Invalid username or password", "UTF-8") + 
                                     "&role=" + attemptedRole);
