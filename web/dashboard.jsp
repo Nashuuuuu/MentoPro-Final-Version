@@ -790,7 +790,7 @@
         .note-meta { font-size: 13px; color: #64748b; margin-bottom: 18px; line-height: 1.6; }
 
         .card-actions { display: flex; gap: 10px; }
-        .btn { flex: 1; padding: 10px; text-align: center; text-decoration: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; transition: all 0.2s; }
+        .card-actions .btn { flex: 1; padding: 10px; text-align: center; text-decoration: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; transition: all 0.2s; }
         .btn-download { background: <%= primaryColor%>; color: white; }
         .btn-download:hover { background: <%= primaryDark%>; }
         .btn-remove { background: #fee2e2; color: #ef4444; flex: 0 0 45px; }
@@ -800,8 +800,7 @@
         .section-upload { background: white; border: 1px solid #e2e8f0; padding: 25px; margin-bottom: 25px; border-radius: 16px; display: none; }
 
         #notifContainer { position: fixed; top: 20px; right: 20px; z-index: 9999; }
-        .toast { background: white; padding: 16px 24px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 12px; margin-bottom: 10px; border-left: 4px solid #10b981; animation: slideIn 0.3s ease-out; }
-        .toast.error { border-left-color: #ef4444; }
+        
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     </style>
 </head>
@@ -842,7 +841,7 @@
         <% } %>
         <li class="nav-item">
             <a href="dashboard.jsp?view=notes" class="nav-link <%= "notes".equals(view) ? "active" : ""%>">
-                <i class="fa-solid fa-book-open"></i> Study Notes
+                <i class="fa-solid fa-book-open"></i> <span>Study Notes</span>
             </a>
         </li>
         <li>
@@ -1316,12 +1315,11 @@
                         <a href="NoteController?action=download&id=<%= n.getNoteID() %>" class="btn btn-download" style="flex: 1; text-align: center; text-decoration: none;">
                             <i class="fa-solid fa-download"></i> Download
                         </a>
-                        <% if (isMentor) { %>
-                        <a href="NoteController?action=remove&id=<%= n.getNoteID() %>" class="btn btn-remove" 
-                           onclick="return confirm('Are you sure you want to delete this resource?');"
-                           style="padding: 10px 15px; text-decoration: none;">
+                        <% if (isMentor && n.getMentorID() == currentId) { %>
+                        <button onclick="confirmDelete(<%= n.getNoteID() %>)" class="btn btn-remove" 
+                           style="padding: 10px 15px; border: none;">
                             <i class="fa-solid fa-trash"></i>
-                        </a>
+                        </button>
                         <% } %>
                     </div>
                 </div>
@@ -1440,7 +1438,7 @@
                 <p>
                     Deleting your account will permanently remove all your profile data and mentorship connections. This action cannot be undone.
                 </p>
-                <form action="ProfileServlet" method="POST" onsubmit="return confirm('⚠️ WARNING: This will permanently delete ALL your data from the database. Are you absolutely sure?');">
+                <form action="ProfileServlet" method="POST" onsubmit="return confirmAccountDeletion();">
                     <input type="hidden" name="studentID" value="<%= currentId %>">
                     <input type="hidden" name="action" value="delete">
                     <button type="submit">
@@ -1482,38 +1480,21 @@ function filterMentors() {
     if(grid) grid.style.display = visibleCount === 0 ? "none" : "grid";
 }
 
-    function updateFileName(input) {
-        const label = document.getElementById('fileNameLabel');
-        if (input.files && input.files.length > 0) {
-            label.textContent = input.files[0].name;
-            label.style.color = '#10b981';
-        }
+function updateFileName(input) {
+    var label = document.getElementById('fileNameLabel');
+    if (input.files && input.files.length > 0) {
+        var fileName = input.files[0].name;
+        var fileSize = (input.files[0].size / 1024 / 1024).toFixed(2);
+        label.innerHTML = '<i class="fa-solid fa-file-check" style="color: <%= primaryColor %>; margin-right: 8px;"></i>' + 
+                        fileName + ' <span style="color: #94a3b8;">(' + fileSize + ' MB)</span>';
     }
+}
 
-    function showNotification(message, type = 'success') {
-        const container = document.getElementById('notifContainer');
-        if (!container) return;
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation';
-        toast.innerHTML = `<i class="fa-solid ${icon}"></i><div>${message}</div>`;
-        container.appendChild(toast);
-        setTimeout(() => {
-            toast.classList.add('toast-fade-out');
-            setTimeout(() => toast.remove(), 400);
-        }, 3000);
-    }
-
-    window.onload = function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('status') === 'uploaded') showNotification('Material shared successfully!');
-        if (urlParams.get('status') === 'fail') showNotification('Upload failed. Please try again.', 'error');
-        if (urlParams.get('status') === 'error') showNotification('An unexpected error occurred.', 'error');
-    };
-    
 function showNotification(message, type) {
     type = type || 'success';
     var container = document.getElementById('notifContainer');
+    if (!container) return;
+    
     var toast = document.createElement('div');
     toast.className = 'toast ' + type;
     
@@ -1532,61 +1513,65 @@ function showNotification(message, type) {
     }, 4000);
 }
 
+function confirmDelete(noteId) {
+    if (confirm('Are you sure you want to delete this resource? This action cannot be undone.')) {
+        window.location.href = 'NoteController?action=remove&id=' + noteId;
+    }
+}
+
+function confirmAccountDeletion() {
+    var confirmation1 = confirm('⚠️ WARNING: This will permanently delete ALL your data from the database.\n\nAre you absolutely sure you want to continue?');
+    
+    if (confirmation1) {
+        var confirmation2 = confirm('This is your FINAL WARNING!\n\nAll your profile information, connections, and data will be PERMANENTLY DELETED.\n\nClick OK to proceed with deletion or Cancel to keep your account.');
+        return confirmation2;
+    }
+    
+    return false;
+}
+
+function openUploadModal() {
+    var modal = document.getElementById('uploadModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeUploadModal() {
+    var modal = document.getElementById('uploadModal');
+    var form = document.getElementById('uploadForm');
+    var label = document.getElementById('fileNameLabel');
+    
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+    
+    if (form) {
+        form.reset();
+    }
+    
+    if (label) {
+        label.innerHTML = 'Click to browse or drag &amp; drop file here';
+    }
+}
+
 window.onload = function() {
     var urlParams = new URLSearchParams(window.location.search);
     var msg = urlParams.get('msg');
     var status = urlParams.get('status');
 
     if (msg) {
-        // Decode the URL-encoded message
         var decodedMsg = decodeURIComponent(msg.replace(/\+/g, ' '));
         showNotification(decodedMsg, status || 'success');
     }
 };
-function openUploadModal() {
-        const modal = document.getElementById('uploadModal');
-        if (modal) {
-            modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        }
-    }
-    
-    function closeUploadModal() {
-        const modal = document.getElementById('uploadModal');
-        const form = document.getElementById('uploadForm');
-        const label = document.getElementById('fileNameLabel');
-        
-        if (modal) {
-            modal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
-        
-        if (form) {
-            form.reset();
-        }
-        
-        if (label) {
-            label.textContent = 'Click to browse or drag & drop file here';
-        }
-    }
-    
-    function updateFileName(input) {
-        const label = document.getElementById('fileNameLabel');
-        if (input.files && input.files[0] && label) {
-            const fileName = input.files[0].name;
-            const fileSize = (input.files[0].size / 1024 / 1024).toFixed(2);
-            label.innerHTML = '<i class="fa-solid fa-file-check" style="color: <%= primaryColor %>; margin-right: 8px;"></i>' + 
-                            fileName + ' <span style="color: #94a3b8;">(' + fileSize + ' MB)</span>';
-        }
-    }
-    
-    // ========================================
-    // Event Listeners
-    // ========================================
-    
-    // Close modal when clicking outside
+
+// Event Listeners
+if (document.addEventListener) {
     document.addEventListener('DOMContentLoaded', function() {
-        const modal = document.getElementById('uploadModal');
+        var modal = document.getElementById('uploadModal');
         if (modal) {
             modal.addEventListener('click', function(e) {
                 if (e.target === this) {
@@ -1595,10 +1580,7 @@ function openUploadModal() {
             });
         }
         
-        // ========================================
-        // Close Button Hover Effects
-        // ========================================
-        const closeBtn = document.querySelector('.btn-close');
+        var closeBtn = document.querySelector('.btn-close');
         if (closeBtn) {
             closeBtn.addEventListener('mouseenter', function() {
                 this.style.background = '#f1f5f9';
@@ -1610,10 +1592,7 @@ function openUploadModal() {
             });
         }
         
-        // ========================================
-        // Dropzone Hover Effects
-        // ========================================
-        const dropzone = document.querySelector('.upload-dropzone');
+        var dropzone = document.querySelector('.upload-dropzone');
         if (dropzone) {
             dropzone.addEventListener('mouseenter', function() {
                 this.style.borderColor = '<%= primaryColor %>';
@@ -1625,103 +1604,7 @@ function openUploadModal() {
             });
         }
     });
-</script>
-<script type="text/javascript">
-    // ========================================
-    // Modal Functions
-    // ========================================
-    
-    function openUploadModal() {
-        var modal = document.getElementById('uploadModal');
-        if (modal) {
-            modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        }
-    }
-    
-    function closeUploadModal() {
-        var modal = document.getElementById('uploadModal');
-        var form = document.getElementById('uploadForm');
-        var label = document.getElementById('fileNameLabel');
-        
-        if (modal) {
-            modal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
-        
-        if (form) {
-            form.reset();
-        }
-        
-        if (label) {
-            label.innerHTML = 'Click to browse or drag &amp; drop file here';
-        }
-    }
-    
-    function updateFileName(input) {
-        var label = document.getElementById('fileNameLabel');
-        if (input.files && input.files[0] && label) {
-            var fileName = input.files[0].name;
-            var fileSize = (input.files[0].size / 1024 / 1024).toFixed(2);
-            label.innerHTML = '<i class="fa-solid fa-file-check" style="color: <%= primaryColor %>; margin-right: 8px;"></i>' + 
-                            fileName + ' <span style="color: #94a3b8;">(' + fileSize + ' MB)</span>';
-        }
-    }
-    
-    // ========================================
-    // Event Listeners (Compatible with older browsers)
-    // ========================================
-    
-    // Close modal when clicking outside
-    if (document.addEventListener) {
-        document.addEventListener('DOMContentLoaded', function() {
-            var modal = document.getElementById('uploadModal');
-            if (modal) {
-                modal.addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        closeUploadModal();
-                    }
-                });
-            }
-            
-            // ========================================
-            // Close Button Hover Effects
-            // ========================================
-            var closeBtn = document.querySelector('.btn-close');
-            if (closeBtn) {
-                closeBtn.addEventListener('mouseenter', function() {
-                    this.style.background = '#f1f5f9';
-                    this.style.color = '#1e293b';
-                });
-                closeBtn.addEventListener('mouseleave', function() {
-                    this.style.background = 'none';
-                    this.style.color = '#64748b';
-                });
-            }
-            
-            // ========================================
-            // Dropzone Hover Effects
-            // ========================================
-            var dropzone = document.querySelector('.upload-dropzone');
-            if (dropzone) {
-                dropzone.addEventListener('mouseenter', function() {
-                    this.style.borderColor = '<%= primaryColor %>';
-                    this.style.background = '#f0f9ff';
-                });
-                dropzone.addEventListener('mouseleave', function() {
-                    this.style.borderColor = '#cbd5e1';
-                    this.style.background = '#f8fafc';
-                });
-            }
-        });
-    } else if (document.attachEvent) {
-        // Fallback for IE8 and older
-        document.attachEvent('onreadystatechange', function() {
-            if (document.readyState === 'complete') {
-                // Event listeners setup here if needed
-            }
-        });
-    }
+}
 </script>
 
 </body>

@@ -16,7 +16,7 @@ import javax.servlet.http.Part;
 @WebServlet(name = "NoteController", urlPatterns = {"/NoteController"})
 @MultipartConfig(maxFileSize = 10 * 1024 * 1024) // Limit to 10MB
 public class NoteController extends HttpServlet {
-
+    
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -27,7 +27,6 @@ public class NoteController extends HttpServlet {
                 int noteId = Integer.parseInt(request.getParameter("id"));
                 StudentDAO dao = new StudentDAO();
                 Note note = dao.getNoteById(noteId);
-
                 if (note != null && note.getFileData() != null) {
                     response.setContentType(note.getFileType());
                     response.setHeader("Content-Disposition", "attachment; filename=\"" + note.getFileName() + "\"");
@@ -39,14 +38,31 @@ public class NoteController extends HttpServlet {
             } catch (Exception e) {
                 response.sendRedirect("dashboard.jsp?view=notes&status=error");
             }
+        } 
+        // ============================================
+        // DELETE FUNCTIONALITY - ADDED
+        // ============================================
+        else if ("remove".equals(action)) {
+            try {
+                int noteId = Integer.parseInt(request.getParameter("id"));
+                StudentDAO dao = new StudentDAO();
+                boolean success = dao.deleteNote(noteId);
+                
+                if (success) {
+                    response.sendRedirect("dashboard.jsp?view=notes&msg=Resource+deleted+successfully&status=success");
+                } else {
+                    response.sendRedirect("dashboard.jsp?view=notes&msg=Failed+to+delete+resource&status=error");
+                }
+            } catch (Exception e) {
+                response.sendRedirect("dashboard.jsp?view=notes&msg=Delete+error&status=error");
+            }
         }
     }
-
+    
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String action = request.getParameter("action");
-
         if ("upload".equals(action)) {
             try {
                 int mentorId = (int) request.getSession().getAttribute("studentID");
@@ -70,13 +86,13 @@ public class NoteController extends HttpServlet {
                     boolean success = dao.uploadNote(mentorId, fileName, fileType, fileData);
                     
                     if (success) {
-                        response.sendRedirect("dashboard.jsp?view=notes&status=uploaded");
+                        response.sendRedirect("dashboard.jsp?view=notes&msg=Resource+uploaded+successfully&status=success");
                     } else {
-                        response.sendRedirect("dashboard.jsp?view=notes&status=fail");
+                        response.sendRedirect("dashboard.jsp?view=notes&msg=Upload+failed&status=error");
                     }
                 }
             } catch (Exception e) {
-                response.sendRedirect("dashboard.jsp?view=notes&status=error");
+                response.sendRedirect("dashboard.jsp?view=notes&msg=Upload+error&status=error");
             }
         }
     }

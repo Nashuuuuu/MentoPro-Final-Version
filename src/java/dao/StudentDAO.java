@@ -366,7 +366,7 @@ public class StudentDAO {
     }
     
     public Note getNoteById(int noteId) throws Exception {
-        String sql = "SELECT * FROM notes WHERE noteID = ?";
+        String sql = "SELECT n.*, s.studentName FROM notes n JOIN student s ON n.mentorID = s.studentID WHERE n.noteID = ?";
         try (Connection con = DBConn.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, noteId);
@@ -374,6 +374,8 @@ public class StudentDAO {
                 if (rs.next()) {
                     Note n = new Note();
                     n.setNoteID(rs.getInt("noteID"));
+                    n.setMentorID(rs.getInt("mentorID"));
+                    n.setMentorName(rs.getString("studentName"));
                     n.setFileName(rs.getString("fileName"));
                     n.setFileType(rs.getString("fileType"));
                     n.setFileData(rs.getBytes("fileData"));
@@ -382,6 +384,18 @@ public class StudentDAO {
             }
         }
         return null;
+    }
+
+    // ============================================
+    // DELETE NOTE METHOD - ADDED FOR DELETE FUNCTIONALITY
+    // ============================================
+    public boolean deleteNote(int noteId) throws Exception {
+        String sql = "DELETE FROM notes WHERE noteID = ?";
+        try (Connection con = DBConn.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, noteId);
+            return ps.executeUpdate() > 0;
+        }
     }
 
     private Student mapStudent(ResultSet rs) throws SQLException {
